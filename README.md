@@ -17,19 +17,40 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Explain your design in plain language.
+Each song has categorical and numerical features, including genre, mood, energy, valence, tempo, and more. The UserProfile stores the user's preferred genre, mood, and energy level. The Recommender computes a score for each song based on how closely it matches the user's preferences, using a weighted sum of the differences between the song's features and the user's profile. The top-scoring songs are recommended to the user. It calculates the score for which songs to recommend by scoring every song in the dataset and then returning the top songs as recommendations.
 
-Some prompts to answer:
+The recommender takes a user profile and scores every song in the CSV, then ranks songs by total score.
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
+Plan:
 
-You can include a simple diagram or bullet list if helpful.
+1. Read user preferences: favorite_genre, favorite_mood, target_energy, likes_acoustic.
+2. Loop through each song in the dataset.
+3. For each song, calculate points from the Algorithm Recipe below.
+4. Store each song with its total score and short explanation.
+5. Sort all songs from highest score to lowest.
+6. Return the top K songs as recommendations.
 
----
+Algorithm Recipe:
+
+- Genre match: +2.0 points.
+- Mood match: +1.0 point.
+- Energy similarity: up to +2.0 points based on closeness to target energy.
+  - Formula: energy_points = 2.0 \* (1 - abs(song_energy - target_energy))
+  - Clamp at 0.0 minimum.
+- Acousticness preference (if used):
+  - If likes_acoustic is true, reward higher acousticness (for example +acousticness).
+  - If likes_acoustic is false, reward lower acousticness (for example +(1 - acousticness)).
+- Optional small bonuses (low weight): valence or danceability.
+
+Potential Biases and Risks:
+
+- This system may over-prioritize genre, which could lead to less diverse recommendations.
+- Exact mood labels can be too rigid, especially when moods overlap (for example, chill vs relaxed).
+- A single target energy value can unfairly penalize songs that vary in intensity but still fit the user.
+- Small catalogs amplify bias because underrepresented genres or moods get fewer chances to appear in top results.
+
+Example output:
+![Terminal output showing scores and reasons](images/example.png).
 
 ## Getting Started
 
@@ -41,6 +62,8 @@ You can include a simple diagram or bullet list if helpful.
    python -m venv .venv
    source .venv/bin/activate      # Mac or Linux
    .venv\Scripts\activate         # Windows
+
+   ```
 
 2. Install dependencies
 
@@ -101,12 +124,11 @@ Write 1 to 2 paragraphs here about what you learned:
 - about how recommenders turn data into predictions
 - about where bias or unfairness could show up in systems like this
 
-
 ---
 
 ## 7. `model_card_template.md`
 
-Combines reflection and model card framing from the Module 3 guidance. :contentReference[oaicite:2]{index=2}  
+Combines reflection and model card framing from the Module 3 guidance. :contentReference[oaicite:2]{index=2}
 
 ```markdown
 # 🎧 Model Card - Music Recommender Simulation
@@ -158,6 +180,7 @@ Describe your dataset.
 Where does your recommender work well
 
 You can think about:
+
 - Situations where the top results "felt right"
 - Particular user profiles it served well
 - Simplicity or transparency benefits
@@ -169,6 +192,7 @@ You can think about:
 Where does your recommender struggle
 
 Some prompts:
+
 - Does it ignore some genres or moods
 - Does it treat all users as if they have the same taste shape
 - Is it biased toward high energy or one genre by default
@@ -181,6 +205,7 @@ Some prompts:
 How did you check your system
 
 Examples:
+
 - You tried multiple user profiles and wrote down whether the results matched your expectations
 - You compared your simulation to what a real app like Spotify or YouTube tends to recommend
 - You wrote tests for your scoring logic
@@ -208,4 +233,4 @@ A few sentences about what you learned:
 - What surprised you about how your system behaved
 - How did building this change how you think about real music recommenders
 - Where do you think human judgment still matters, even if the model seems "smart"
-
+```
